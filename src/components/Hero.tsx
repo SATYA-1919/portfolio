@@ -68,31 +68,24 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
-    // Pull the camera back so the robot's arms/hands stay inside the frame.
-    const zoomOut = () => {
+    // The scene plays a ~2s intro camera dolly that starts zoomed-in. Keep the
+    // zoomed-out poster up while it plays; once it's done, pull the camera back a
+    // single time (it holds after the intro) and cross-fade to the live robot.
+    // Result: the robot stays at the poster's zoom — no zoom-in on reload.
+    window.setTimeout(() => {
       try {
         spline.setZoom(0.5);
       } catch {
         /* older runtimes may not expose setZoom */
       }
-    };
-    // The scene plays an intro camera zoom that overrides a one-shot setZoom, so
-    // hold the zoom-out every frame for a few seconds to neutralise it — the
-    // robot stays at the poster's zoom the whole time (no zoom-in on reload).
-    const t0 = performance.now();
-    const hold = () => {
-      zoomOut();
-      if (performance.now() - t0 < 5000) window.requestAnimationFrame(hold);
-    };
-    window.requestAnimationFrame(hold);
-    // Both poster and live are now zoomed out, so cross-fade in quickly.
-    window.setTimeout(() => setReady(true), 450);
+      window.requestAnimationFrame(() => setReady(true));
+    }, 2800);
   };
 
   useEffect(() => {
     if (!mounted) return;
     // Fallback: if the scene never fires onLoad, still reveal it eventually.
-    const t = window.setTimeout(() => setReady(true), 4000);
+    const t = window.setTimeout(() => setReady(true), 6000);
     return () => window.clearTimeout(t);
   }, [mounted]);
 
@@ -221,6 +214,7 @@ export function Hero() {
             src="/robot-poster.webp"
             alt=""
             aria-hidden
+            decoding="sync"
             fetchPriority="high"
           />
           {mounted && (
