@@ -622,8 +622,29 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 @media (max-width: 860px) {
   .section { padding: 90px 0; }
-  .workGrid { grid-template-columns: repeat(2, 1fr); }
-  .pcard, .pcard.feat { grid-column: span 2; min-height: 320px; }
+
+  /* Stack the screenshot above the text on small screens. The overlay layout
+     is desktop-only because several screenshots contain their own UI text that
+     collides with the card title when the two are stacked on top of each other. */
+  .workGrid { grid-template-columns: 1fr; gap: 18px; }
+  .pcard, .pcard.feat {
+    grid-column: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .pshot, .pcover { position: relative; inset: auto; height: 200px; flex: 0 0 auto; }
+  .pshot.phone { height: 250px; }
+  .pshot img { object-position: top center; filter: none; }
+  .pcard .frost { display: none; }
+  .pbody { position: relative; inset: auto; padding: 22px 24px 26px; flex: 1 1 auto; }
+  .pcard.feat .pbody { padding: 24px; }
+  .ptop { margin-bottom: 16px; }
+  .ptitle { margin-top: 0; }
+  .pblurb { opacity: 1; max-height: none; transform: none; }
+  .pmeta { margin-top: 18px; }
+  .ptags { max-width: 100%; }
+
   .exGrid { grid-template-columns: 1fr; }
   .exCard { min-height: 360px; }
 }
@@ -631,11 +652,9 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .wrap { padding: 0 20px; }
   .nav { padding: 0 20px; }
   .section { padding: 76px 0; }
-  .workGrid { grid-template-columns: 1fr; }
-  .pcard, .pcard.feat { grid-column: span 1; }
   .contact { padding: 44px 22px 50px; }
-  .pblurb { opacity: 1; max-height: 120px; transform: none; }
-  .pshot img { filter: grayscale(0); }
+  .pshot, .pcover { height: 176px; }
+  .pshot.phone { height: 230px; }
   .exShot img { filter: grayscale(0); }
 }
 

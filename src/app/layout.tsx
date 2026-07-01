@@ -62,7 +62,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <link rel="preconnect" href="https://prod.spline.design" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://prod.spline.design" />
-        <link rel="preload" href={ROBOT_SCENE_URL} as="fetch" crossOrigin="anonymous" />
+        {/* The 1.35 MB scene is only rendered on desktop — don't fetch it on phones. */}
+        <link
+          rel="preload"
+          href={ROBOT_SCENE_URL}
+          as="fetch"
+          crossOrigin="anonymous"
+          media="(min-width: 1025px)"
+        />
       </head>
       <body>
         <Background />

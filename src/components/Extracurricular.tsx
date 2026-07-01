@@ -6,16 +6,16 @@ const items = [
     title: "Football",
     caption:
       "Competitive matches and college league nights under the floodlights — I turn out at #19.",
-    image: "/extracurricular/football.jpg",
+    image: "/extracurricular/football.webp",
     objectPosition: "center",
     alt: "Playing football at a night match, wearing the number 19 jersey",
   },
   {
-    label: "Volunteering",
+    label: "Volunteered",
     title: "Blue Cross of Hyderabad",
     caption:
-      "Volunteering at the Animal Birth Control Center — rescue, care, and awareness drives for street animals.",
-    image: "/extracurricular/bluecross.jpg",
+      "Volunteered at the Animal Birth Control Center — rescue, care, and awareness drives for street animals.",
+    image: "/extracurricular/bluecross.webp",
     objectPosition: "center",
     alt: "Entrance sign of the Blue Cross of Hyderabad Animal Birth Control Center",
   },
@@ -36,7 +36,7 @@ export function Extracurricular() {
               </h2>
             </div>
             <p className="sectionNote">
-              I&apos;m happiest on a football pitch — and I volunteer with an animal-welfare shelter.
+              I&apos;m happiest on a football pitch — and I&apos;ve volunteered with an animal-welfare shelter.
             </p>
           </div>
         </Reveal>
