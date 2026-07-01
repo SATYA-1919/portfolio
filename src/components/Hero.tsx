@@ -68,24 +68,31 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
-    // The scene plays a ~2s intro camera dolly that starts zoomed-in. Keep the
-    // zoomed-out poster up while it plays; once it's done, pull the camera back a
-    // single time (it holds after the intro) and cross-fade to the live robot.
-    // Result: the robot stays at the poster's zoom — no zoom-in on reload.
-    window.setTimeout(() => {
-      try {
-        spline.setZoom(0.5);
-      } catch {
-        /* older runtimes may not expose setZoom */
-      }
-      window.requestAnimationFrame(() => setReady(true));
-    }, 2800);
+    // The scene's "start" event dollies the camera in from close (z≈360) to its
+    // resting frame (z≈1000). Pin the camera to the resting transform every frame
+    // for a few seconds so that dolly never plays — the robot is at its default
+    // (zoomed-in) framing from the first frame and is interactive immediately.
+    const cam = spline.findObjectByName("Camera 2");
+    const pin = () => {
+      if (!cam) return;
+      cam.position.x = 0;
+      cam.position.y = 146.98;
+      cam.position.z = 1000;
+    };
+    pin();
+    const t0 = performance.now();
+    const hold = () => {
+      pin();
+      if (performance.now() - t0 < 3500) window.requestAnimationFrame(hold);
+    };
+    window.requestAnimationFrame(hold);
+    window.requestAnimationFrame(() => setReady(true));
   };
 
   useEffect(() => {
     if (!mounted) return;
     // Fallback: if the scene never fires onLoad, still reveal it eventually.
-    const t = window.setTimeout(() => setReady(true), 6000);
+    const t = window.setTimeout(() => setReady(true), 4000);
     return () => window.clearTimeout(t);
   }, [mounted]);
 
