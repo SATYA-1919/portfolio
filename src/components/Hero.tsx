@@ -217,6 +217,7 @@ export function Hero() {
               />
             </div>
           )}
+          <div className="heroWmMask" aria-hidden />
         </div>
       </div>
     </section>

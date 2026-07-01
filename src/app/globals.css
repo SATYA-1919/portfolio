@@ -332,13 +332,16 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   background: radial-gradient(46% 46% at 55% 46%, rgba(255, 255, 255, 0.08), transparent 70%);
 }
 
-/* The live scene sits above the poster and cross-fades in once loaded. */
+/* The live scene sits above the poster and cross-fades in once loaded.
+   grayscale desaturates the (purple) robot to fit the black & white design —
+   remove this filter on .heroStage + .heroPoster to restore its full colour. */
 .heroStage {
   position: absolute;
   inset: 0;
   z-index: 2;
   opacity: 0;
   contain: layout paint;
+  filter: grayscale(1) contrast(1.05) brightness(1.04);
   transition: opacity 0.55s var(--ease);
 }
 .heroStage.is-ready { opacity: 1; }
@@ -352,11 +355,24 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   height: 100%;
   object-fit: cover;
   object-position: center;
+  filter: grayscale(1) contrast(1.05) brightness(1.04);
   opacity: 1;
   transition: opacity 0.6s var(--ease);
   pointer-events: none;
 }
 .heroPoster.is-hidden { opacity: 0; }
+
+/* Masks the "Built with Spline" badge in the bottom-right of the free scene. */
+.heroWmMask {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 260px;
+  height: 110px;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(130% 130% at 100% 100%, var(--bg) 0%, var(--bg) 40%, transparent 74%);
+}
 
 .heroRobot {
   position: absolute;
