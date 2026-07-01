@@ -68,24 +68,8 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
-    // The scene's "start" event dollies the camera in from close (z≈360) to its
-    // resting frame (z≈1000). Pin the camera to the resting transform every frame
-    // for a few seconds so that dolly never plays — the robot is at its default
-    // (zoomed-in) framing from the first frame and is interactive immediately.
-    const cam = spline.findObjectByName("Camera 2");
-    const pin = () => {
-      if (!cam) return;
-      cam.position.x = 0;
-      cam.position.y = 146.98;
-      cam.position.z = 1000;
-    };
-    pin();
-    const t0 = performance.now();
-    const hold = () => {
-      pin();
-      if (performance.now() - t0 < 3500) window.requestAnimationFrame(hold);
-    };
-    window.requestAnimationFrame(hold);
+    // This scene has no intro camera animation (constant camera), so just reveal
+    // it as soon as it loads — interactive immediately, no dolly to hide.
     window.requestAnimationFrame(() => setReady(true));
   };
 
