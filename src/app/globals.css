@@ -362,16 +362,17 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .heroPoster.is-hidden { opacity: 0; }
 
-/* Masks the "Built with Spline" badge in the bottom-right of the free scene. */
+/* Masks the "Built with Spline" badge baked into the free scene's bottom-right
+   (it's rendered inside the canvas, so it can only be covered, not hidden). */
 .heroWmMask {
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 260px;
-  height: 110px;
+  width: 290px;
+  height: 132px;
   z-index: 3;
   pointer-events: none;
-  background: radial-gradient(130% 130% at 100% 100%, var(--bg) 0%, var(--bg) 40%, transparent 74%);
+  background: radial-gradient(100% 100% at 100% 100%, var(--bg) 64%, rgba(10, 10, 10, 0) 100%);
 }
 
 .heroRobot {
