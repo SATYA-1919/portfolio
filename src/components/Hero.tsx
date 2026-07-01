@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Application } from "@splinetool/runtime";
-import { motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Github, Linkedin, Mail, MoveRight, FileText } from "lucide-react";
 import { SplineScene } from "@/components/ui/splite";
 import { FloatingPaths } from "@/components/ui/background-paths";
@@ -10,31 +10,19 @@ import { Magnetic } from "@/components/Magnetic";
 import { profile } from "@/lib/data";
 import { ROBOT_SCENE_URL } from "@/lib/robot";
 
-function AnimatedWord({
-  word,
-  base,
-  reduce,
-}: {
-  word: string;
-  base: number;
-  reduce: boolean | null;
-}) {
+// CSS-driven reveal (not Framer) so the name paints and animates on first paint,
+// without waiting for the JS bundle to download + hydrate.
+function AnimatedWord({ word, base }: { word: string; base: number }) {
   return (
     <span className="heroWord">
       {word.split("").map((letter, i) => (
-        <motion.span
+        <span
           key={i}
           className="heroLetter"
-          initial={reduce ? { opacity: 0 } : { y: 90, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={
-            reduce
-              ? { duration: 0.3, delay: base }
-              : { delay: base + i * 0.035, type: "spring", stiffness: 150, damping: 24 }
-          }
+          style={{ animationDelay: `${(base + i * 0.028).toFixed(3)}s` }}
         >
           {letter}
-        </motion.span>
+        </span>
       ))}
     </span>
   );
@@ -66,13 +54,14 @@ export function Hero() {
         return;
       }
 
-      // Start fetching the React wrapper chunk just after first paint so the
-      // scene begins loading quickly without blocking the first text render.
+      // Kick off the wrapper chunk on the next tick so the robot starts
+      // downloading ASAP. The hero text is CSS-driven, so this no longer
+      // competes with the name showing up.
       timer = window.setTimeout(() => {
         hasLoaded = true;
         void import("@splinetool/react-spline");
         setMounted(true);
-      }, 80);
+      }, 0);
     };
 
     loadRobot();
@@ -170,54 +159,34 @@ export function Hero() {
 
       <div className="wrap heroGrid">
         <div className="heroText">
-          <motion.span
-            className="avail"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-          >
+          <span className="avail heroFade" style={{ animationDelay: "0.05s" }}>
             <span className="pulse">
               <span />
               <span />
             </span>
             Available for internships &amp; freelance
-          </motion.span>
+          </span>
 
           <h1 className="heroName">
-            <AnimatedWord word="Satyaki" base={0.15} reduce={reduce} />
+            <AnimatedWord word="Satyaki" base={0.06} />
             <br />
             <span className="heroSerif">
-              <AnimatedWord word="Tirumal" base={0.4} reduce={reduce} />
+              <AnimatedWord word="Tirumal" base={0.24} />
             </span>
           </h1>
 
-          <motion.div
-            className="heroMetaRow"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
-          >
+          <div className="heroMetaRow heroFade" style={{ animationDelay: "0.34s" }}>
             <span className="heroRole">Full-Stack · Mobile · AI</span>
             <span className="rule" />
             <span className="loc">{profile.location}</span>
-          </motion.div>
+          </div>
 
-          <motion.p
-            className="heroLede"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0, duration: 0.6 }}
-          >
+          <p className="heroLede heroFade" style={{ animationDelay: "0.44s" }}>
             I build full-stack web platforms, native mobile apps, and AI-powered tools —
             from placement portals to autonomous satellite planners.
-          </motion.p>
+          </p>
 
-          <motion.div
-            className="heroActions"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1, duration: 0.6 }}
-          >
+          <div className="heroActions heroFade" style={{ animationDelay: "0.54s" }}>
             <Magnetic>
               <a href="#work" className="btn btn-primary">
                 View work <MoveRight size={16} />
@@ -237,7 +206,7 @@ export function Hero() {
                 <Mail size={19} strokeWidth={1.7} />
               </a>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         <div className="heroVisual" ref={visualRef}>

@@ -303,7 +303,16 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   align-items: center;
   padding: 140px 0 80px;
 }
-.heroPaths { position: absolute; inset: 0; z-index: 0; opacity: 0.32; pointer-events: none; }
+.heroPaths { position: absolute; inset: 0; z-index: 0; opacity: 0.5; pointer-events: none; }
+/* Animated background lines — a bright segment streams along each path while the
+   line gently breathes (pathLength is normalised to 1, so dash units are
+   fractions of each line). Staggered per-path via inline animation-delay. */
+.heroPaths path {
+  stroke-dasharray: 0.5 0.5;
+  animation: heroPathFlow 14s linear infinite, heroPathGlow 5.5s ease-in-out infinite;
+}
+@keyframes heroPathFlow { to { stroke-dashoffset: -1; } }
+@keyframes heroPathGlow { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
 .heroGrid {
   position: relative;
   z-index: 1;
@@ -372,7 +381,20 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   font-size: clamp(2.8rem, 6.4vw, 5.8rem);
 }
 .heroWord { display: inline-block; }
-.heroLetter { display: inline-block; will-change: transform; }
+/* CSS-driven entrance so the name reveals on first paint (no JS/hydration wait). */
+.heroLetter {
+  display: inline-block;
+  animation: heroLetterIn 0.5s var(--ease) backwards;
+}
+@keyframes heroLetterIn {
+  from { opacity: 0; transform: translateY(0.9em); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.heroFade { animation: heroFadeUp 0.6s var(--ease) backwards; }
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
 .heroSerif { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.02em; }
 
 .heroMetaRow { margin-top: 30px; display: flex; align-items: center; justify-content: flex-start; gap: 16px; flex-wrap: wrap; }
@@ -670,4 +692,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   }
   .marqueeTrack, .pcover.gen::before, .loader { animation: none !important; }
   .marqueeTrack { transform: none !important; }
+  /* Show hero text immediately (no delayed reveal) for reduced-motion users. */
+  .heroLetter, .heroFade { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .heroPaths path { animation: none !important; }
 }

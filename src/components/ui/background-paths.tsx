@@ -31,6 +31,8 @@ export function FloatingPaths({ position }: { position: number }) {
                         stroke="currentColor"
                         strokeWidth={path.width}
                         strokeOpacity={0.1 + path.id * 0.03}
+                        pathLength={1}
+                        style={{ animationDelay: `${-path.id * 1.05}s` }}
                     />
                 ))}
             </svg>
