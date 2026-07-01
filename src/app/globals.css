@@ -332,18 +332,31 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   background: radial-gradient(46% 46% at 55% 46%, rgba(255, 255, 255, 0.08), transparent 70%);
 }
 
-/* Fade the robot in only after its intro camera move has settled, so it appears
-   already zoomed-out instead of visibly zooming on every reload. */
+/* The live scene sits above the poster and cross-fades in once loaded. */
 .heroStage {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   opacity: 0;
   contain: layout paint;
-  transition: opacity 0.28s var(--ease);
+  transition: opacity 0.55s var(--ease);
 }
 .heroStage.is-ready { opacity: 1; }
-.heroLoader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
+
+/* Static robot render shown instantly on first paint (no spinner / no gap). */
+.heroPoster {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  transition: opacity 0.6s var(--ease);
+  pointer-events: none;
+}
+.heroPoster.is-hidden { opacity: 0; }
 
 .heroRobot {
   position: absolute;
@@ -380,17 +393,21 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   line-height: 0.86;
   font-size: clamp(2.8rem, 6.4vw, 5.8rem);
 }
-.heroWord { display: inline-block; }
-/* CSS-driven entrance so the name reveals on first paint (no JS/hydration wait). */
-.heroLetter {
+/* CSS-driven word reveal: one composited element per word so the name paints +
+   animates on first paint (no JS wait) and can't stutter on the font swap. */
+.heroWord {
   display: inline-block;
-  animation: heroLetterIn 0.5s var(--ease) backwards;
+  animation: heroWordIn 0.6s var(--ease) backwards;
+  will-change: transform, opacity;
 }
-@keyframes heroLetterIn {
-  from { opacity: 0; transform: translateY(0.9em); }
+@keyframes heroWordIn {
+  from { opacity: 0; transform: translateY(0.34em); }
   to { opacity: 1; transform: translateY(0); }
 }
-.heroFade { animation: heroFadeUp 0.6s var(--ease) backwards; }
+.heroFade {
+  animation: heroFadeUp 0.6s var(--ease) backwards;
+  will-change: transform, opacity;
+}
 @keyframes heroFadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
@@ -693,6 +710,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .marqueeTrack, .pcover.gen::before, .loader { animation: none !important; }
   .marqueeTrack { transform: none !important; }
   /* Show hero text immediately (no delayed reveal) for reduced-motion users. */
-  .heroLetter, .heroFade { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .heroWord, .heroFade { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .heroPoster { transition: none !important; }
   .heroPaths path { animation: none !important; }
 }

@@ -10,20 +10,13 @@ import { Magnetic } from "@/components/Magnetic";
 import { profile } from "@/lib/data";
 import { ROBOT_SCENE_URL } from "@/lib/robot";
 
-// CSS-driven reveal (not Framer) so the name paints and animates on first paint,
-// without waiting for the JS bundle to download + hydrate.
+// CSS-driven word reveal (not Framer, not per-letter) so the name paints and
+// animates smoothly on first paint — one composited element per word, so the
+// font swap and JS parse can't stutter it.
 function AnimatedWord({ word, base }: { word: string; base: number }) {
   return (
-    <span className="heroWord">
-      {word.split("").map((letter, i) => (
-        <span
-          key={i}
-          className="heroLetter"
-          style={{ animationDelay: `${(base + i * 0.028).toFixed(3)}s` }}
-        >
-          {letter}
-        </span>
-      ))}
+    <span className="heroWord" style={{ animationDelay: `${base}s` }}>
+      {word}
     </span>
   );
 }
@@ -168,10 +161,10 @@ export function Hero() {
           </span>
 
           <h1 className="heroName">
-            <AnimatedWord word="Satyaki" base={0.06} />
+            <AnimatedWord word="Satyaki" base={0.04} />
             <br />
             <span className="heroSerif">
-              <AnimatedWord word="Tirumal" base={0.24} />
+              <AnimatedWord word="Tirumal" base={0.13} />
             </span>
           </h1>
 
@@ -211,6 +204,16 @@ export function Hero() {
 
         <div className="heroVisual" ref={visualRef}>
           <div className="heroGlow2" aria-hidden />
+          {/* Static robot render shown instantly (no spinner); the live scene
+              cross-fades in over it once loaded, so the robot is never "late". */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className={`heroPoster${ready ? " is-hidden" : ""}`}
+            src="/robot-poster.webp"
+            alt=""
+            aria-hidden
+            fetchPriority="high"
+          />
           {mounted && (
             <div className={`heroStage${ready ? " is-ready" : ""}`}>
               <SplineScene
@@ -220,7 +223,6 @@ export function Hero() {
               />
             </div>
           )}
-          {mounted && !ready && <span className="loader heroLoader" aria-hidden />}
         </div>
       </div>
     </section>
