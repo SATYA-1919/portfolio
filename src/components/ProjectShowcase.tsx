@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   motion,
   useInView,
@@ -34,6 +34,7 @@ const ICONS: Record<ProjectIcon, LucideIcon> = {
 function ProjectCard({ p, index }: { p: Project; index: number }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const frame = useRef(0);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const [broken, setBroken] = useState(false);
 
@@ -43,13 +44,30 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
   const rx = useSpring(useTransform(my, [0, 1], [7, -7]), { stiffness: 150, damping: 18 });
   const ry = useSpring(useTransform(mx, [0, 1], [-7, 7]), { stiffness: 150, damping: 18 });
 
-  function onMove(e: React.MouseEvent) {
-    if (reduce || !ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    mx.set((e.clientX - r.left) / r.width);
-    my.set((e.clientY - r.top) / r.height);
+  useEffect(() => {
+    return () => {
+      if (frame.current) window.cancelAnimationFrame(frame.current);
+    };
+  }, []);
+
+  function onMove(e: React.PointerEvent) {
+    if (reduce || e.pointerType !== "mouse" || !ref.current || frame.current) return;
+    const { clientX, clientY } = e;
+
+    frame.current = window.requestAnimationFrame(() => {
+      frame.current = 0;
+      if (!ref.current) return;
+      const r = ref.current.getBoundingClientRect();
+      mx.set((clientX - r.left) / r.width);
+      my.set((clientY - r.top) / r.height);
+    });
   }
+
   function onLeave() {
+    if (frame.current) {
+      window.cancelAnimationFrame(frame.current);
+      frame.current = 0;
+    }
     mx.set(0.5);
     my.set(0.5);
   }
@@ -150,8 +168,8 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
         href={href}
         target="_blank"
         rel="noreferrer"
-        onMouseMove={onMove}
-        onMouseLeave={onLeave}
+        onPointerMove={onMove}
+        onPointerLeave={onLeave}
         aria-label={`${p.title} — ${p.blurb}`}
         {...reveal}
       >
@@ -164,8 +182,8 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
       ref={ref}
       className={cls}
       style={style}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
       {...reveal}
     >
       {body}

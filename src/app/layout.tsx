@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { profile } from "@/lib/data";
+import { ROBOT_SCENE_URL } from "@/lib/robot";
 import { Background } from "@/components/Background";
 
 const grotesk = Space_Grotesk({
@@ -58,6 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`dark ${grotesk.variable} ${instrument.variable} ${inter.variable} ${jetbrains.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://prod.spline.design" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://prod.spline.design" />
+        <link rel="preload" href={ROBOT_SCENE_URL} as="fetch" crossOrigin="anonymous" />
+      </head>
       <body>
         <Background />
         <div className="app">{children}</div>

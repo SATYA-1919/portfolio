@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Application } from "@splinetool/runtime";
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Github, Linkedin, Mail, MoveRight, FileText } from "lucide-react";
 import { SplineScene } from "@/components/ui/splite";
 import { FloatingPaths } from "@/components/ui/background-paths";
 import { Magnetic } from "@/components/Magnetic";
 import { profile } from "@/lib/data";
+import { ROBOT_SCENE_URL } from "@/lib/robot";
 
 function AnimatedWord({
   word,
@@ -41,22 +42,47 @@ function AnimatedWord({
 
 export function Hero() {
   const reduce = useReducedMotion();
-  // Mount the 3D scene once it's first on screen, then KEEP it mounted so it
-  // never reloads / flickers when you scroll away and back.
-  const stageRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(stageRef, { once: true, margin: "300px" });
   const [mounted, setMounted] = useState(false);
-  // Keep the robot hidden until its intro camera move has settled, so it
-  // appears already zoomed-out instead of visibly zooming on every reload.
   const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (inView) setMounted(true);
-  }, [inView]);
 
-  const splineRef = useRef<Application | null>(null);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1025px)");
+    let timer = 0;
+    let hasLoaded = false;
+
+    const loadRobot = () => {
+      window.clearTimeout(timer);
+
+      if (!media.matches) {
+        setReady(false);
+        setMounted(false);
+        return;
+      }
+
+      if (hasLoaded) {
+        setMounted(true);
+        return;
+      }
+
+      // Start fetching the React wrapper chunk just after first paint so the
+      // scene begins loading quickly without blocking the first text render.
+      timer = window.setTimeout(() => {
+        hasLoaded = true;
+        void import("@splinetool/react-spline");
+        setMounted(true);
+      }, 80);
+    };
+
+    loadRobot();
+    media.addEventListener("change", loadRobot);
+
+    return () => {
+      media.removeEventListener("change", loadRobot);
+      window.clearTimeout(timer);
+    };
+  }, []);
+
   const revealRobot = (spline: Application) => {
-    splineRef.current = spline;
-    (window as unknown as { __spline?: Application }).__spline = spline; // debug
     // Pull the camera back so the robot's arms/hands stay inside the frame when
     // it sways to the side (default framing clips the hands).
     const zoomOut = () => {
@@ -67,48 +93,16 @@ export function Hero() {
       }
     };
     zoomOut();
-    // Scene has loaded; let its intro settle, then fade in at the final frame.
-    window.setTimeout(() => {
+    window.requestAnimationFrame(() => {
       zoomOut();
       setReady(true);
-    }, 1100);
+    });
   };
-  useEffect(() => {
-    if (!mounted) return;
-    // Safety net: never leave the robot hidden if onLoad is slow / doesn't fire.
-    const t = window.setTimeout(() => setReady(true), 4500);
-    return () => window.clearTimeout(t);
-  }, [mounted]);
 
-  // Spline's head-follow only listens on its own <canvas>, so the robot ignores
-  // the cursor unless it's directly over it. Forward every window pointer move
-  // to the canvas (throttled to a frame) so it tracks the cursor across the
-  // whole tab. Spline's raycaster reads pageX/pageY, so we carry those through.
   useEffect(() => {
     if (!mounted) return;
-    let raf = 0;
-    let cx = 0, cy = 0, px = 0, py = 0;
-    const flush = () => {
-      raf = 0;
-      const canvas = document.querySelector<HTMLElement>(".heroRobot");
-      if (!canvas) return;
-      const ev = new PointerEvent("pointermove", {
-        clientX: cx, clientY: cy, bubbles: false, cancelable: true,
-        pointerType: "mouse", pointerId: 1,
-      });
-      Object.defineProperty(ev, "pageX", { value: px });
-      Object.defineProperty(ev, "pageY", { value: py });
-      canvas.dispatchEvent(ev);
-    };
-    const onMove = (e: PointerEvent) => {
-      cx = e.clientX; cy = e.clientY; px = e.pageX; py = e.pageY;
-      if (!raf) raf = window.requestAnimationFrame(flush);
-    };
-    window.addEventListener("pointermove", onMove);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      if (raf) window.cancelAnimationFrame(raf);
-    };
+    const t = window.setTimeout(() => setReady(true), 2500);
+    return () => window.clearTimeout(t);
   }, [mounted]);
 
   return (
@@ -190,12 +184,12 @@ export function Hero() {
           </motion.div>
         </div>
 
-        <div className="heroVisual" ref={stageRef}>
+        <div className="heroVisual">
           <div className="heroGlow2" aria-hidden />
           {mounted && (
             <div className={`heroStage${ready ? " is-ready" : ""}`}>
               <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                scene={ROBOT_SCENE_URL}
                 className="heroRobot"
                 onLoad={revealRobot}
               />
