@@ -1,0 +1,67 @@
+import type { Metadata } from "next";
+import { Space_Grotesk, Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
+import "./globals.css";
+import { profile } from "@/lib/data";
+import { Background } from "@/components/Background";
+
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-grotesk",
+  display: "swap",
+});
+const instrument = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-serif-instrument",
+  display: "swap",
+});
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono-jb",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: profile.name,
+  description: profile.tagline,
+  keywords: [
+    "Satyaki Tirumal",
+    "Full-Stack Developer",
+    "Mobile Developer",
+    "Next.js",
+    "React",
+    "Flutter",
+    "AI",
+  ],
+  authors: [{ name: profile.name }],
+  openGraph: {
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.tagline,
+    type: "website",
+  },
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23f4f4f2'/><text x='50' y='72' font-size='62' font-weight='700' font-family='Arial' fill='%230a0a0a' text-anchor='middle'>S</text></svg>",
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html
+      lang="en"
+      className={`dark ${grotesk.variable} ${instrument.variable} ${inter.variable} ${jetbrains.variable}`}
+    >
+      <body>
+        <Background />
+        <div className="app">{children}</div>
+      </body>
+    </html>
+  );
+}
