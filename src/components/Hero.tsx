@@ -68,6 +68,13 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
+    (window as unknown as { __spline?: Application }).__spline = spline; // debug
+    try {
+      const plane = spline.findObjectByName("Plane");
+      if (plane) plane.visible = false;
+    } catch {
+      /* no-op */
+    }
     // This scene has no intro camera animation (constant camera), so just reveal
     // it as soon as it loads — interactive immediately, no dolly to hide.
     window.requestAnimationFrame(() => setReady(true));
