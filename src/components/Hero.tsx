@@ -68,8 +68,7 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
-    // Pull the camera back so the robot's arms/hands stay inside the frame when
-    // it sways to the side (default framing clips the hands).
+    // Pull the camera back so the robot's arms/hands stay inside the frame.
     const zoomOut = () => {
       try {
         spline.setZoom(0.5);
@@ -77,16 +76,23 @@ export function Hero() {
         /* older runtimes may not expose setZoom */
       }
     };
-    zoomOut();
-    window.requestAnimationFrame(() => {
+    // The scene plays an intro camera zoom that overrides a one-shot setZoom, so
+    // hold the zoom-out every frame for a few seconds to neutralise it — the
+    // robot stays at the poster's zoom the whole time (no zoom-in on reload).
+    const t0 = performance.now();
+    const hold = () => {
       zoomOut();
-      setReady(true);
-    });
+      if (performance.now() - t0 < 5000) window.requestAnimationFrame(hold);
+    };
+    window.requestAnimationFrame(hold);
+    // Both poster and live are now zoomed out, so cross-fade in quickly.
+    window.setTimeout(() => setReady(true), 450);
   };
 
   useEffect(() => {
     if (!mounted) return;
-    const t = window.setTimeout(() => setReady(true), 2500);
+    // Fallback: if the scene never fires onLoad, still reveal it eventually.
+    const t = window.setTimeout(() => setReady(true), 4000);
     return () => window.clearTimeout(t);
   }, [mounted]);
 
@@ -168,18 +174,20 @@ export function Hero() {
             </span>
           </h1>
 
-          <div className="heroMetaRow heroFade" style={{ animationDelay: "0.34s" }}>
+          {/* Everything below the name reveals as a single smooth block. */}
+          <div className="heroSub heroFade" style={{ animationDelay: "0.32s" }}>
+          <div className="heroMetaRow">
             <span className="heroRole">Full-Stack · Mobile · AI</span>
             <span className="rule" />
             <span className="loc">{profile.location}</span>
           </div>
 
-          <p className="heroLede heroFade" style={{ animationDelay: "0.44s" }}>
+          <p className="heroLede">
             I build full-stack web platforms, native mobile apps, and AI-powered tools —
             from placement portals to autonomous satellite planners.
           </p>
 
-          <div className="heroActions heroFade" style={{ animationDelay: "0.54s" }}>
+          <div className="heroActions">
             <Magnetic>
               <a href="#work" className="btn btn-primary">
                 View work <MoveRight size={16} />
@@ -199,6 +207,7 @@ export function Hero() {
                 <Mail size={19} strokeWidth={1.7} />
               </a>
             </div>
+          </div>
           </div>
         </div>
 
