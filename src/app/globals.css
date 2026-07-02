@@ -346,7 +346,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .heroStage.is-ready { opacity: 1; }
 
-/* Static robot render shown instantly on first paint (no spinner / no gap). */
+/* Static robot render shown instantly on first paint (no spinner / no gap).
+   Grayscale is baked into the file — a CSS filter here would lighten the baked
+   background and reveal the image's rectangle against the page. The mask
+   feathers the edges so the poster melts into the background seamlessly. */
 .heroPoster {
   position: absolute;
   inset: 0;
@@ -355,7 +358,8 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: grayscale(1) contrast(1.05) brightness(1.04);
+  mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, #000 68%, transparent 98%);
+  -webkit-mask-image: radial-gradient(ellipse 88% 88% at 50% 50%, #000 68%, transparent 98%);
   opacity: 1;
   transition: opacity 0.6s var(--ease);
   pointer-events: none;
@@ -412,10 +416,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 /* CSS-driven word reveal: one composited element per word so the name paints +
    animates on first paint (no JS wait) and can't stutter on the font swap. */
+/* NOTE: no will-change here — permanent composited layers were being dropped
+   on mobile GPUs (nav / words randomly not painting). The entrance is short;
+   let the browser promote layers only while the animation runs. */
 .heroWord {
   display: inline-block;
   animation: heroWordIn 0.6s var(--ease) backwards;
-  will-change: transform, opacity;
 }
 @keyframes heroWordIn {
   from { opacity: 0; transform: translateY(0.34em); }
@@ -423,7 +429,6 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .heroFade {
   animation: heroFadeUp 0.6s var(--ease) backwards;
-  will-change: transform, opacity;
 }
 @keyframes heroFadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -675,6 +680,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .heroGrid { grid-template-columns: 1fr; }
   .heroVisual { display: none; }
   .hero { min-height: 86svh; }
+  /* The flowing-line animations repaint the full-viewport SVG every frame on
+     the CPU — far too heavy for phones (janked scroll, dropped paint). Static
+     lines on mobile; the animation stays on desktop. */
+  .heroPaths path { animation: none; stroke-dasharray: none; }
 }
 @media (max-width: 860px) {
   .section { padding: 90px 0; }

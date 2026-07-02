@@ -68,8 +68,9 @@ export function Hero() {
 
   const revealRobot = (spline: Application) => {
     splineRef.current = spline;
-    (window as unknown as { __spline?: Application }).__spline = spline; // debug
     try {
+      // Hide the scene's angular floor platform — we want only the robot and
+      // the cube it stands on, floating on the page background.
       const plane = spline.findObjectByName("Plane");
       if (plane) plane.visible = false;
     } catch {
@@ -209,7 +210,7 @@ export function Hero() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className={`heroPoster${ready ? " is-hidden" : ""}`}
-            src="/robot-poster.webp"
+            src="/robot-whobee.webp"
             alt=""
             aria-hidden
             decoding="sync"
