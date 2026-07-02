@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Application } from "@splinetool/runtime";
-import { useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { Github, Linkedin, Mail, MoveRight, FileText } from "lucide-react";
 import { SplineScene } from "@/components/ui/splite";
 import { FloatingPaths } from "@/components/ui/background-paths";
@@ -25,8 +25,19 @@ export function Hero() {
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [ready, setReady] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
   const visualRef = useRef<HTMLDivElement>(null);
   const splineRef = useRef<Application | null>(null);
+
+  // Scroll parallax — text, robot and background lines leave at different
+  // speeds as you scroll. Transform-only (GPU-composited), so it costs nothing.
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const yText = useTransform(scrollYProgress, [0, 1], [0, -110]);
+  const yVisual = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const yPaths = useTransform(scrollYProgress, [0, 1], [0, 70]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1025px)");
@@ -142,14 +153,14 @@ export function Hero() {
   }, [mounted]);
 
   return (
-    <section className="hero" id="top">
-      <div className="heroPaths" aria-hidden>
+    <section className="hero" id="top" ref={sectionRef}>
+      <motion.div className="heroPaths" aria-hidden style={reduce ? undefined : { y: yPaths }}>
         <FloatingPaths position={1} />
         <FloatingPaths position={-1} />
-      </div>
+      </motion.div>
 
       <div className="wrap heroGrid">
-        <div className="heroText">
+        <motion.div className="heroText" style={reduce ? undefined : { y: yText }}>
           <span className="avail heroFade" style={{ animationDelay: "0.05s" }}>
             <span className="pulse">
               <span />
@@ -201,16 +212,20 @@ export function Hero() {
             </div>
           </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="heroVisual" ref={visualRef}>
+        <motion.div
+          className="heroVisual"
+          ref={visualRef}
+          style={reduce ? undefined : { y: yVisual }}
+        >
           <div className="heroGlow2" aria-hidden />
           {/* Static robot render shown instantly (no spinner); the live scene
               cross-fades in over it once loaded, so the robot is never "late". */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className={`heroPoster${ready ? " is-hidden" : ""}`}
-            src="/robot-whobee.webp"
+            src="/robot-hero.webp"
             alt=""
             aria-hidden
             decoding="sync"
@@ -226,7 +241,7 @@ export function Hero() {
             </div>
           )}
           <div className="heroWmMask" aria-hidden />
-        </div>
+        </motion.div>
       </div>
     </section>
   );

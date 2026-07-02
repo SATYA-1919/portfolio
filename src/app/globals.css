@@ -304,15 +304,18 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   padding: 140px 0 80px;
 }
 .heroPaths { position: absolute; inset: 0; z-index: 0; opacity: 0.5; pointer-events: none; }
-/* Animated background lines — a bright segment streams along each path while the
-   line gently breathes (pathLength is normalised to 1, so dash units are
-   fractions of each line). Staggered per-path via inline animation-delay. */
-.heroPaths path {
-  stroke-dasharray: 0.5 0.5;
-  animation: heroPathFlow 14s linear infinite, heroPathGlow 5.5s ease-in-out infinite;
+/* Animated background lines. Per-path stroke animations repaint the whole
+   viewport-sized SVG on the CPU every frame (this is what made the page lag) —
+   instead the two SVGs breathe as whole layers: opacity + transform only, which
+   the GPU composites for free. */
+.heroPaths svg {
+  animation: heroPathsBreathe 9s ease-in-out infinite;
 }
-@keyframes heroPathFlow { to { stroke-dashoffset: -1; } }
-@keyframes heroPathGlow { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.heroPaths > div:last-child svg { animation-delay: -4.5s; }
+@keyframes heroPathsBreathe {
+  0%, 100% { opacity: 0.4; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-16px); }
+}
 .heroGrid {
   position: relative;
   z-index: 1;
@@ -366,17 +369,20 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 }
 .heroPoster.is-hidden { opacity: 0; }
 
-/* Masks the "Built with Spline" badge baked into the free scene's bottom-right
-   (it's rendered inside the canvas, so it can only be covered, not hidden). */
+/* Covers exactly the "Built with Spline" badge baked into the free scene's
+   bottom-right corner (it's inside the canvas, so it can only be covered).
+   Sized to the badge only — a bigger cover overlaps the robot's cube. */
 .heroWmMask {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 290px;
-  height: 132px;
+  right: 4px;
+  bottom: 8px;
+  width: 156px;
+  height: 46px;
   z-index: 3;
   pointer-events: none;
-  background: radial-gradient(100% 100% at 100% 100%, var(--bg) 64%, rgba(10, 10, 10, 0) 100%);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: 0 0 10px 5px var(--bg);
 }
 
 .heroRobot {
@@ -680,10 +686,9 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .heroGrid { grid-template-columns: 1fr; }
   .heroVisual { display: none; }
   .hero { min-height: 86svh; }
-  /* The flowing-line animations repaint the full-viewport SVG every frame on
-     the CPU — far too heavy for phones (janked scroll, dropped paint). Static
-     lines on mobile; the animation stays on desktop. */
-  .heroPaths path { animation: none; stroke-dasharray: none; }
+  /* Static lines on mobile — even composited animations are wasted battery
+     behind a single-column layout. */
+  .heroPaths svg { animation: none; }
 }
 @media (max-width: 860px) {
   .section { padding: 90px 0; }
@@ -738,5 +743,5 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   /* Show hero text immediately (no delayed reveal) for reduced-motion users. */
   .heroWord, .heroFade { animation: none !important; opacity: 1 !important; transform: none !important; }
   .heroPoster { transition: none !important; }
-  .heroPaths path { animation: none !important; }
+  .heroPaths svg, .heroPaths path { animation: none !important; }
 }
