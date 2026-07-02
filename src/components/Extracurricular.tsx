@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/Reveal";
+import { ParallaxShot } from "@/components/ParallaxShot";
 
 const items = [
   {
@@ -45,15 +46,7 @@ export function Extracurricular() {
           {items.map((it, i) => (
             <Reveal key={it.title} delay={i * 0.08}>
               <article className="exCard">
-                <div className="exShot">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={it.image}
-                    alt={it.alt}
-                    loading="lazy"
-                    style={{ objectPosition: it.objectPosition }}
-                  />
-                </div>
+                <ParallaxShot src={it.image} alt={it.alt} objectPosition={it.objectPosition} />
                 <div className="frost" />
                 <div className="exBody">
                   <span className="exLabel">{it.label}</span>

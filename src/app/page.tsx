@@ -13,8 +13,11 @@ export default function Home() {
 
   return (
     <>
+      <a href="#main" className="skipLink">
+        Skip to content
+      </a>
       <Nav />
-      <main>
+      <main id="main">
         {/* ===== Hero (text left · 3D robot right) ===== */}
         <Hero />
 
@@ -39,8 +42,8 @@ export default function Home() {
                   Let&apos;s <span className="serif iri">build</span>.
                 </p>
                 <p className="contactSub">
-                  Open to internships &amp; freelance. Have an idea or a role in mind? My inbox is
-                  always open.
+                  Open to internships and freelance work. If you have an idea or a role in
+                  mind, my inbox is always open — I reply fast.
                 </p>
                 <div className="contactActions">
                   <Magnetic>

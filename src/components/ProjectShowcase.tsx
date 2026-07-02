@@ -206,8 +206,8 @@ export function ProjectShowcase() {
               </h2>
             </div>
             <p className="sectionNote">
-              Full-stack platforms, native &amp; cross-platform apps, and AI tooling — from
-              placement portals to autonomous satellite planners.
+              Five builds, all shipped — from a full university placement platform to an
+              autonomous satellite mission planner.
             </p>
           </div>
         </Reveal>
