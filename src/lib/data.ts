@@ -40,9 +40,13 @@ export type Project = {
   /** Optional screenshot in /public/projects/<slug>.webp. Falls back to a
    *  generative cover if the file is missing (handled in ProjectShowcase). */
   image?: string;
-  /** Optional muted looping preview. `image` doubles as its poster, and stays
-   *  the only thing loaded under reduced motion or if the video fails. */
+  /** Optional muted looping preview on the card. `image` doubles as its poster,
+   *  and stays the only thing loaded under reduced motion or if this fails.
+   *  Kept small and silent — every visitor pays for it. */
   video?: string;
+  /** The same walkthrough at full resolution with sound, opened by the
+   *  lightbox. Only downloads when someone actually asks to watch. */
+  videoFull?: string;
   /** "phone" renders the screenshot in a device frame; "screen" fills the card. */
   frame?: "phone" | "screen";
 };
@@ -81,6 +85,7 @@ export const projects: Project[] = [
     accent: "#6d5cff",
     image: "/projects/amex.webp",
     video: "/projects/amex.mp4",
+    videoFull: "/projects/amex-full.mp4",
     frame: "screen",
   },
   {

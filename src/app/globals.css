@@ -574,15 +574,21 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   transition: filter 0.5s var(--ease);
 }
 .pcard:hover .pshot .pvid { filter: grayscale(0) contrast(1) brightness(1); }
+/* The device sits in the right third rather than dead centre, so the title and
+   blurb get a clear column instead of being set over the screenshot. That buys
+   the phone room to be nearly card-height and actually legible. */
 .pshot.phone {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: radial-gradient(70% 70% at 50% 18%, rgba(255, 255, 255, 0.06), transparent 70%), #0c0c0d;
+  justify-content: flex-end;
+  padding-right: 7%;
+  background: radial-gradient(64% 72% at 74% 16%, rgba(255, 255, 255, 0.09), transparent 72%), #0c0c0d;
 }
+.pcard.phoneCard { min-height: 430px; }
+.pcard.phoneCard .pbody { max-width: 62%; }
 .pshot.phone .frame {
   position: relative;
-  height: 82%;
+  height: 90%;
   aspect-ratio: 9 / 19.5;
   border-radius: 26px;
   padding: 8px;
@@ -630,10 +636,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .plink svg { transition: transform 0.25s ease; }
 .pcard:hover .plink svg { transform: translate(2px, -2px); }
 
-/* Sound toggle — a quieter sibling of .plink, so the outlined pill reads as
+/* Watch pill — a quieter sibling of .plink, so the outlined pill reads as
    secondary to the solid one that actually leaves the page. */
 .pacts { display: flex; align-items: center; gap: 8px; }
-.psound {
+.pwatch {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -648,13 +654,107 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   white-space: nowrap;
   cursor: pointer;
   backdrop-filter: blur(6px);
-  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+  transition: border-color 0.25s ease, background 0.25s ease;
 }
-.psound:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.1); }
-.psound.on { border-color: var(--brand); color: #fff; background: rgba(255, 77, 46, 0.18); }
-/* The whole card is a click target for sound, but only the pills are the
-   things you actually press. */
-.pcard.sounded .plink, .pcard.sounded .psound { cursor: pointer; }
+.pwatch:hover { border-color: var(--brand); background: rgba(255, 77, 46, 0.18); }
+.pcard.playable .plink, .pcard.playable .pwatch { cursor: pointer; }
+
+/* Play badge over the preview — the standing hint that the card opens a
+   player. It grows and turns vermillion as the card is hovered. */
+.pplay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2; /* above .frost, which would otherwise wash it out */
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  margin: -31px 0 0 -31px;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(10, 10, 12, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(7px);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.9);
+  transition: transform 0.4s var(--ease), background 0.4s ease, border-color 0.4s ease;
+}
+.pplay svg { margin-left: 3px; } /* optical centring of the triangle */
+.pcard.playable:hover .pplay {
+  transform: scale(1.12);
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+/* ===================================================================
+   Walkthrough lightbox
+   =================================================================== */
+.lbox {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(4, 4, 6, 0.82);
+  backdrop-filter: blur(14px);
+}
+.lboxInner {
+  width: min(1180px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lboxBar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.lboxCat { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); }
+.lboxWho h3 { margin: 4px 0 0; font-size: clamp(1.4rem, 3vw, 2rem); letter-spacing: -0.02em; }
+.lboxActs { display: flex; align-items: center; gap: 10px; }
+.lboxSrc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 15px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.76rem;
+  font-weight: 600;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+.lboxSrc:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.08); }
+.lboxX {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+.lboxX:hover { border-color: var(--brand); background: rgba(255, 77, 46, 0.2); }
+/* A landscape video in a portrait viewport is width-bound, so the header gives
+   up whatever room it can and the native fullscreen control does the rest. */
+@media (max-width: 640px) {
+  .lbox { padding: 14px; }
+  .lboxBar { align-items: center; }
+  .lboxCat { font-size: 0.6rem; letter-spacing: 0.12em; }
+  .lboxWho h3 { font-size: 1.2rem; }
+  .lboxSrc { padding: 8px 12px; }
+}
+.lboxVid {
+  width: 100%;
+  min-height: 0;
+  max-height: calc(100vh - 190px);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #000;
+  box-shadow: 0 50px 120px -40px rgba(0, 0, 0, 0.95);
+  display: block;
+}
 
 /* ===================================================================
    Extracurricular (grayscale → colour on hover)
@@ -758,7 +858,12 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
     flex-direction: column;
   }
   .pshot, .pcover { position: relative; inset: auto; height: 200px; flex: 0 0 auto; }
-  .pshot.phone { height: 250px; }
+  /* Stacked, the text no longer sits beside the device, so the phone goes back
+     to centre and gets the full width of the card to be big in. */
+  .pshot.phone { height: 300px; justify-content: center; padding-right: 0; }
+  .pcard.phoneCard { min-height: 0; }
+  .pcard.phoneCard .pbody { max-width: 100%; }
+  .pplay { width: 52px; height: 52px; margin: -26px 0 0 -26px; }
   .pshot img, .pshot .pvid { object-position: top center; filter: none; }
   .pcard .frost { display: none; }
   .pbody { position: relative; inset: auto; padding: 22px 24px 26px; flex: 1 1 auto; }
@@ -778,7 +883,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   .section { padding: 76px 0; }
   .contact { padding: 44px 22px 50px; }
   .pshot, .pcover { height: 176px; }
-  .pshot.phone { height: 230px; }
+  .pshot.phone { height: 270px; }
   .exShot img { filter: grayscale(0); }
 }
 

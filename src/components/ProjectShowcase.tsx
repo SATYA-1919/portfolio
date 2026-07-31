@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  AnimatePresence,
   motion,
   useInView,
   useMotionValue,
@@ -19,13 +20,13 @@ import {
   PlaneTakeoff,
   ShoppingCart,
   ListChecks,
+  Play,
   Satellite,
-  Volume2,
-  VolumeX,
   type LucideIcon,
 } from "lucide-react";
 import { projects, type Project, type ProjectIcon } from "@/lib/data";
 import { Reveal } from "@/components/Reveal";
+import { VideoLightbox } from "@/components/VideoLightbox";
 
 const ICONS: Record<ProjectIcon, LucideIcon> = {
   graduation: GraduationCap,
@@ -56,14 +57,19 @@ function orphanedSlugs(list: Project[]) {
   return wide;
 }
 
-/** Sound belongs to one card at a time: whoever unmutes tells the rest to go
- *  quiet, so two previews can never talk over each other. */
-const soundSubs = new Set<(slug: string | null) => void>();
-function claimSound(slug: string | null) {
-  for (const notify of soundSubs) notify(slug);
-}
-
-function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: boolean }) {
+function ProjectCard({
+  p,
+  index,
+  wide,
+  onPlay,
+  frozen,
+}: {
+  p: Project;
+  index: number;
+  wide: boolean;
+  onPlay: (p: Project) => void;
+  frozen: boolean;
+}) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
@@ -74,7 +80,6 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
   const video = useRef<HTMLVideoElement>(null);
   const [broken, setBroken] = useState(false);
   const [videoBroken, setVideoBroken] = useState(false);
-  const [sound, setSound] = useState(false);
 
   // pointer-driven tilt
   const mx = useMotionValue(0.5);
@@ -88,37 +93,18 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
     };
   }, []);
 
+  // The silent card loop runs only while the card is near the viewport, and
+  // stands down entirely while the lightbox has the floor.
   useEffect(() => {
     const el = video.current;
     if (!el) return;
-    if (!near) {
+    if (!near || frozen) {
       el.pause();
       return;
     }
     if (!el.getAttribute("src")) el.setAttribute("src", p.video!);
     void el.play().catch(() => {});
-  }, [near, p.video]);
-
-  useEffect(() => {
-    const notify = (slug: string | null) => setSound(slug === p.slug);
-    soundSubs.add(notify);
-    return () => {
-      soundSubs.delete(notify);
-    };
-  }, [p.slug]);
-
-  // Mirrors state onto the element so a card muted by *another* card's claim
-  // goes quiet too. The click handler also sets this synchronously, because
-  // browsers only honour an unmute inside the gesture that asked for it.
-  useEffect(() => {
-    const el = video.current;
-    if (el) el.muted = !sound;
-  }, [sound]);
-
-  // Scrolling a talking card away gives the sound back.
-  useEffect(() => {
-    if (!near && sound) claimSound(null);
-  }, [near, sound]);
+  }, [near, frozen, p.video]);
 
   function onMove(e: React.PointerEvent) {
     if (reduce || e.pointerType !== "mouse" || !ref.current || frame.current) return;
@@ -145,23 +131,15 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
   const Icon = ICONS[p.icon];
   const href = p.live || p.github;
   const showImage = p.image && !broken;
-  const showVideo = Boolean(showImage && p.video && !videoBroken && !reduce);
+  // A card with a preview spends its click on opening the player instead of
+  // navigating, so the link moves into the pill and the card stops being an
+  // anchor. The silent loop on the card is only ever a trailer for it.
+  const playable = Boolean(showImage && p.video && !videoBroken);
+  // Reduced motion silences the unprompted loop, but not the player itself —
+  // asking to watch something is a deliberate act, not motion inflicted on you.
+  const showVideo = playable && !reduce;
   const featured = Boolean(p.featured);
-  // A card with a preview spends its click on the sound instead of navigating,
-  // so the link moves into the pill and the card itself stops being an anchor.
-  const soundCard = showVideo;
-
-  function toggleSound() {
-    const el = video.current;
-    if (!el) return;
-    const next = !sound;
-    el.muted = !next;
-    if (next) {
-      el.currentTime = 0; // narrated walkthrough — only makes sense from the top
-      void el.play().catch(() => {});
-    }
-    claimSound(next ? p.slug : null);
-  }
+  const phone = p.frame === "phone";
 
   const linkLabel = p.live ? (
     <>
@@ -199,6 +177,11 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
                   onError={() => setVideoBroken(true)}
                 />
               )}
+              {playable && (
+                <span className="pplay" aria-hidden>
+                  <Play size={20} strokeWidth={2} fill="currentColor" />
+                </span>
+              )}
             </>
           )}
         </div>
@@ -232,26 +215,22 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
           </div>
 
           <div className="pacts">
-            {soundCard && (
+            {playable && (
               <button
                 type="button"
-                className={`psound${sound ? " on" : ""}`}
+                className="pwatch"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleSound();
+                  onPlay(p);
                 }}
-                aria-pressed={sound}
-                aria-label={
-                  sound ? `Mute the ${p.title} preview` : `Play the ${p.title} preview with sound`
-                }
+                aria-label={`Watch the ${p.title} walkthrough with sound`}
               >
-                {sound ? <VolumeX size={13} strokeWidth={2} /> : <Volume2 size={13} strokeWidth={2} />}
-                {sound ? "Mute" : "Sound"}
+                <Play size={12} strokeWidth={2} fill="currentColor" /> Watch
               </button>
             )}
 
             {href &&
-              (soundCard ? (
+              (playable ? (
                 <a
                   className="plink"
                   href={href}
@@ -270,7 +249,7 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
     </>
   );
 
-  const cls = `pcard${featured ? " feat" : ""}${wide ? " wide" : ""}`;
+  const cls = `pcard${featured ? " feat" : ""}${wide ? " wide" : ""}${phone ? " phoneCard" : ""}`;
   const style = {
     "--pa": p.accent,
     rotateX: reduce ? 0 : rx,
@@ -292,18 +271,18 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
         },
   };
 
-  // Anywhere on a sound card toggles its audio. That is mouse convenience on
-  // top of the pill, which is the real control — so no role or tabindex here,
-  // and keyboard users reach the same thing through the button.
-  if (soundCard) {
+  // Anywhere on a playable card opens the player. That is mouse convenience on
+  // top of the Watch pill, which is the real control — so no role or tabindex
+  // here, and keyboard users reach the same thing through the button.
+  if (playable) {
     return (
       <motion.div
         ref={ref}
-        className={`${cls} sounded`}
+        className={`${cls} playable`}
         style={style}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
-        onClick={toggleSound}
+        onClick={() => onPlay(p)}
         {...reveal}
       >
         {body}
@@ -346,6 +325,8 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
 const WIDE = orphanedSlugs(projects);
 
 export function ProjectShowcase() {
+  const [playing, setPlaying] = useState<Project | null>(null);
+
   return (
     <section id="work" className="section">
       <div className="wrap">
@@ -368,10 +349,23 @@ export function ProjectShowcase() {
 
         <div className="workGrid">
           {projects.map((p, i) => (
-            <ProjectCard key={p.slug} p={p} index={i} wide={WIDE.has(p.slug)} />
+            <ProjectCard
+              key={p.slug}
+              p={p}
+              index={i}
+              wide={WIDE.has(p.slug)}
+              onPlay={setPlaying}
+              frozen={playing !== null}
+            />
           ))}
         </div>
       </div>
+
+      <AnimatePresence>
+        {playing && (
+          <VideoLightbox key={playing.slug} project={playing} onClose={() => setPlaying(null)} />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
