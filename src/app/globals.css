@@ -518,6 +518,10 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   box-shadow: 0 40px 100px -44px rgba(0, 0, 0, 0.95);
 }
 .pcard.feat { grid-column: span 6; min-height: 460px; }
+/* A half-width card left without a partner at the end of a run fills the row
+   rather than sitting next to a dead gap. Width only — it is not promoted to
+   a hero card, so it keeps the shorter cover and the 3-tag list. */
+.pcard.wide { grid-column: span 6; }
 
 .pcover { position: absolute; inset: 0; z-index: 0; transition: transform 0.5s var(--ease); }
 .pcover.gen { background: #0c0c0d; }
@@ -706,7 +710,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
    =================================================================== */
 @media (max-width: 1024px) {
   .pcard { grid-column: span 3; }
-  .pcard.feat { grid-column: span 6; }
+  .pcard.feat, .pcard.wide { grid-column: span 6; }
   .heroGrid { grid-template-columns: 1fr; }
   .heroVisual { display: none; }
   .hero { min-height: 86svh; }
@@ -721,7 +725,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
      is desktop-only because several screenshots contain their own UI text that
      collides with the card title when the two are stacked on top of each other. */
   .workGrid { grid-template-columns: 1fr; gap: 18px; }
-  .pcard, .pcard.feat {
+  .pcard, .pcard.feat, .pcard.wide {
     grid-column: auto;
     min-height: 0;
     display: flex;

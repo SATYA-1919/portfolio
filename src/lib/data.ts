@@ -34,6 +34,7 @@ export type Project = {
   year: string;
   github?: string;
   live?: string;
+  /** Full-width hero card in the grid, with a taller cover and more tags. */
   featured?: boolean;
   accent: string;
   /** Optional screenshot in /public/projects/<slug>.webp. Falls back to a
@@ -94,7 +95,6 @@ export const projects: Project[] = [
     tags: ["Python", "Rust", "Tauri", "TypeScript", "React", "FAISS", "SQLite", "Groq"],
     year: "2026",
     github: "https://github.com/SATYA-1919/mitta",
-    featured: true,
     accent: "#6d5cff",
     image: "/projects/mitta.webp",
     frame: "screen",
@@ -111,7 +111,6 @@ export const projects: Project[] = [
     tags: ["React", "TypeScript", "Node.js", "Express", "MongoDB", "Docker", "JWT"],
     year: "2025",
     github: "https://github.com/SATYA-1919/Smart-Leads-Dashboard",
-    featured: true,
     accent: "#6d5cff",
     image: "/projects/smart-leads.webp",
     frame: "screen",

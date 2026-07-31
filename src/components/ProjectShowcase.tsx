@@ -35,7 +35,26 @@ const ICONS: Record<ProjectIcon, LucideIcon> = {
   satellite: Satellite,
 };
 
-function ProjectCard({ p, index }: { p: Project; index: number }) {
+/** Cards pack into a six-column grid: a featured card takes a whole row, the
+ *  rest take half. So the half-width cards between two featured ones pair off,
+ *  and a run with an odd length strands its last card beside an empty gap.
+ *  Those stragglers get widened to fill the row. */
+function orphanedSlugs(list: Project[]) {
+  const wide = new Set<string>();
+  let run: Project[] = [];
+  const close = () => {
+    if (run.length % 2) wide.add(run[run.length - 1].slug);
+    run = [];
+  };
+  for (const p of list) {
+    if (p.featured) close();
+    else run.push(p);
+  }
+  close();
+  return wide;
+}
+
+function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: boolean }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
@@ -96,7 +115,7 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
   const href = p.live || p.github;
   const showImage = p.image && !broken;
   const showVideo = Boolean(showImage && p.video && !videoBroken && !reduce);
-  const featured = index === 0;
+  const featured = Boolean(p.featured);
 
   const body = (
     <>
@@ -173,7 +192,7 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
     </>
   );
 
-  const cls = `pcard${featured ? " feat" : ""}`;
+  const cls = `pcard${featured ? " feat" : ""}${wide ? " wide" : ""}`;
   const style = {
     "--pa": p.accent,
     rotateX: reduce ? 0 : rx,
@@ -227,6 +246,8 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
   );
 }
 
+const WIDE = orphanedSlugs(projects);
+
 export function ProjectShowcase() {
   return (
     <section id="work" className="section">
@@ -250,7 +271,7 @@ export function ProjectShowcase() {
 
         <div className="workGrid">
           {projects.map((p, i) => (
-            <ProjectCard key={p.slug} p={p} index={i} />
+            <ProjectCard key={p.slug} p={p} index={i} wide={WIDE.has(p.slug)} />
           ))}
         </div>
       </div>
