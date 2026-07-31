@@ -16,6 +16,8 @@ export const profile = {
 
 export type ProjectIcon =
   | "graduation"
+  | "concierge"
+  | "assistant"
   | "leads"
   | "grocery"
   | "tasks"
@@ -37,6 +39,9 @@ export type Project = {
   /** Optional screenshot in /public/projects/<slug>.webp. Falls back to a
    *  generative cover if the file is missing (handled in ProjectShowcase). */
   image?: string;
+  /** Optional muted looping preview. `image` doubles as its poster, and stays
+   *  the only thing loaded under reduced motion or if the video fails. */
+  video?: string;
   /** "phone" renders the screenshot in a device frame; "screen" fills the card. */
   frame?: "phone" | "screen";
 };
@@ -57,6 +62,41 @@ export const projects: Project[] = [
     accent: "#6d5cff",
     live: "https://my-app-phi-wine-87.vercel.app",
     image: "/projects/uniship.webp",
+    frame: "screen",
+  },
+  {
+    slug: "aero",
+    title: "Aero",
+    category: "AMEX CodeStreet · Hackathon",
+    icon: "concierge",
+    blurb:
+      "Autonomous travel-disruption concierge — it catches the cancellation, rebooks inside your card's policy, and files the claims for you.",
+    description:
+      "Built for AMEX CodeStreet 2026 (Problem #3). Aero watches an itinerary, detects disruption, and ranks recovery options against the cardmember's loyalty status and spend policy before rebooking — then files the insurance and EU261 compensation claims that follow. A Demo Lab drives five scenarios end to end, including the safety paths: an expiring fare that charges nothing and falls back to the next protected option, and a permanent escalation that hands a full audit trail to a specialist. Accounts run on MongoDB Atlas with bcrypt hashes and HTTP-only session cookies, verified server-side on every protected route.",
+    tags: ["Next.js 16", "React 19", "TypeScript", "Tailwind", "shadcn/ui", "Framer Motion", "MongoDB"],
+    year: "2026",
+    github: "https://github.com/SATYA-1919/Codestreet-2026",
+    featured: true,
+    accent: "#6d5cff",
+    image: "/projects/amex.webp",
+    video: "/projects/amex.mp4",
+    frame: "screen",
+  },
+  {
+    slug: "mitta",
+    title: "MITTA",
+    category: "AI Desktop Assistant",
+    icon: "assistant",
+    blurb:
+      "A local-first AI companion for macOS — it remembers, plans, and asks permission before it touches anything.",
+    description:
+      "A personal AI desktop assistant built as a Tauri shell over a Python sidecar. Memory is six kinds over one table with hybrid vector + keyword recall, decay and deduplication, running on SQLite and FAISS with on-device embeddings, so nothing leaves the machine except the request that answers the question. A bounded planner chains tools — web search, launching apps, writing notes — under parameter-bound single-use approvals and a hash-chained audit log, with Groq and OpenRouter behind health-based failover. Cron schedules honour your own timezone including DST, and on-device speech handles push-to-talk or wake-word input. 840 tests across Python, TypeScript and Rust, plus a pre-commit hook that fails any commit shaped like a credential.",
+    tags: ["Python", "Rust", "Tauri", "TypeScript", "React", "FAISS", "SQLite", "Groq"],
+    year: "2026",
+    github: "https://github.com/SATYA-1919/mitta",
+    featured: true,
+    accent: "#6d5cff",
+    image: "/projects/mitta.webp",
     frame: "screen",
   },
   {

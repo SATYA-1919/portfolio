@@ -12,9 +12,11 @@ import {
 } from "framer-motion";
 import {
   ArrowUpRight,
+  Bot,
   Github,
   GraduationCap,
   LineChart,
+  PlaneTakeoff,
   ShoppingCart,
   ListChecks,
   Satellite,
@@ -25,6 +27,8 @@ import { Reveal } from "@/components/Reveal";
 
 const ICONS: Record<ProjectIcon, LucideIcon> = {
   graduation: GraduationCap,
+  concierge: PlaneTakeoff,
+  assistant: Bot,
   leads: LineChart,
   grocery: ShoppingCart,
   tasks: ListChecks,
@@ -36,7 +40,12 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const frame = useRef(0);
   const inView = useInView(ref, { once: true, margin: "-60px" });
+  // Separate, repeating observer: the preview only downloads and runs while
+  // the card is near the viewport, and pauses again the moment it leaves.
+  const near = useInView(ref, { margin: "200px" });
+  const video = useRef<HTMLVideoElement>(null);
   const [broken, setBroken] = useState(false);
+  const [videoBroken, setVideoBroken] = useState(false);
 
   // pointer-driven tilt
   const mx = useMotionValue(0.5);
@@ -49,6 +58,17 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
       if (frame.current) window.cancelAnimationFrame(frame.current);
     };
   }, []);
+
+  useEffect(() => {
+    const el = video.current;
+    if (!el) return;
+    if (!near) {
+      el.pause();
+      return;
+    }
+    if (!el.getAttribute("src")) el.setAttribute("src", p.video!);
+    void el.play().catch(() => {});
+  }, [near, p.video]);
 
   function onMove(e: React.PointerEvent) {
     if (reduce || e.pointerType !== "mouse" || !ref.current || frame.current) return;
@@ -75,6 +95,7 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
   const Icon = ICONS[p.icon];
   const href = p.live || p.github;
   const showImage = p.image && !broken;
+  const showVideo = Boolean(showImage && p.video && !videoBroken && !reduce);
   const featured = index === 0;
 
   const body = (
@@ -87,8 +108,23 @@ function ProjectCard({ p, index }: { p: Project; index: number }) {
               <img src={p.image} alt={`${p.title} app screenshot`} loading="lazy" onError={() => setBroken(true)} />
             </div>
           ) : (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={p.image} alt={`${p.title} screenshot`} loading="lazy" onError={() => setBroken(true)} />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.image} alt={`${p.title} screenshot`} loading="lazy" onError={() => setBroken(true)} />
+              {showVideo && (
+                <video
+                  ref={video}
+                  className="pvid"
+                  muted
+                  loop
+                  playsInline
+                  preload="none"
+                  poster={p.image}
+                  aria-hidden
+                  onError={() => setVideoBroken(true)}
+                />
+              )}
+            </>
           )}
         </div>
       ) : (
@@ -206,8 +242,8 @@ export function ProjectShowcase() {
               </h2>
             </div>
             <p className="sectionNote">
-              Five builds, all shipped — from a full university placement platform to an
-              autonomous satellite mission planner.
+              Seven builds, all shipped — from a full university placement platform to an
+              autonomous travel concierge and a local-first AI assistant.
             </p>
           </div>
         </Reveal>

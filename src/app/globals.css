@@ -557,6 +557,19 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   transition: filter 0.5s var(--ease);
 }
 .pcard:hover .pshot img { filter: grayscale(0) contrast(1) brightness(1); }
+/* Sits over its own poster so a still is always showing, even before play. */
+.pshot .pvid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  filter: grayscale(1) contrast(1.03) brightness(0.92);
+  transition: filter 0.5s var(--ease);
+}
+.pcard:hover .pshot .pvid { filter: grayscale(0) contrast(1) brightness(1); }
 .pshot.phone {
   display: flex;
   align-items: center;
@@ -716,7 +729,7 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
   }
   .pshot, .pcover { position: relative; inset: auto; height: 200px; flex: 0 0 auto; }
   .pshot.phone { height: 250px; }
-  .pshot img { object-position: top center; filter: none; }
+  .pshot img, .pshot .pvid { object-position: top center; filter: none; }
   .pcard .frost { display: none; }
   .pbody { position: relative; inset: auto; padding: 22px 24px 26px; flex: 1 1 auto; }
   .pcard.feat .pbody { padding: 24px; }
