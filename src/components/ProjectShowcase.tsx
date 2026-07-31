@@ -20,6 +20,8 @@ import {
   ShoppingCart,
   ListChecks,
   Satellite,
+  Volume2,
+  VolumeX,
   type LucideIcon,
 } from "lucide-react";
 import { projects, type Project, type ProjectIcon } from "@/lib/data";
@@ -54,6 +56,13 @@ function orphanedSlugs(list: Project[]) {
   return wide;
 }
 
+/** Sound belongs to one card at a time: whoever unmutes tells the rest to go
+ *  quiet, so two previews can never talk over each other. */
+const soundSubs = new Set<(slug: string | null) => void>();
+function claimSound(slug: string | null) {
+  for (const notify of soundSubs) notify(slug);
+}
+
 function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: boolean }) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
@@ -65,6 +74,7 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
   const video = useRef<HTMLVideoElement>(null);
   const [broken, setBroken] = useState(false);
   const [videoBroken, setVideoBroken] = useState(false);
+  const [sound, setSound] = useState(false);
 
   // pointer-driven tilt
   const mx = useMotionValue(0.5);
@@ -88,6 +98,27 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
     if (!el.getAttribute("src")) el.setAttribute("src", p.video!);
     void el.play().catch(() => {});
   }, [near, p.video]);
+
+  useEffect(() => {
+    const notify = (slug: string | null) => setSound(slug === p.slug);
+    soundSubs.add(notify);
+    return () => {
+      soundSubs.delete(notify);
+    };
+  }, [p.slug]);
+
+  // Mirrors state onto the element so a card muted by *another* card's claim
+  // goes quiet too. The click handler also sets this synchronously, because
+  // browsers only honour an unmute inside the gesture that asked for it.
+  useEffect(() => {
+    const el = video.current;
+    if (el) el.muted = !sound;
+  }, [sound]);
+
+  // Scrolling a talking card away gives the sound back.
+  useEffect(() => {
+    if (!near && sound) claimSound(null);
+  }, [near, sound]);
 
   function onMove(e: React.PointerEvent) {
     if (reduce || e.pointerType !== "mouse" || !ref.current || frame.current) return;
@@ -116,6 +147,31 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
   const showImage = p.image && !broken;
   const showVideo = Boolean(showImage && p.video && !videoBroken && !reduce);
   const featured = Boolean(p.featured);
+  // A card with a preview spends its click on the sound instead of navigating,
+  // so the link moves into the pill and the card itself stops being an anchor.
+  const soundCard = showVideo;
+
+  function toggleSound() {
+    const el = video.current;
+    if (!el) return;
+    const next = !sound;
+    el.muted = !next;
+    if (next) {
+      el.currentTime = 0; // narrated walkthrough — only makes sense from the top
+      void el.play().catch(() => {});
+    }
+    claimSound(next ? p.slug : null);
+  }
+
+  const linkLabel = p.live ? (
+    <>
+      Live <ArrowUpRight size={13} strokeWidth={2.2} />
+    </>
+  ) : (
+    <>
+      <Github size={13} strokeWidth={2} /> Source
+    </>
+  );
 
   const body = (
     <>
@@ -174,19 +230,41 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
               <span key={t}>{t}</span>
             ))}
           </div>
-          {href && (
-            <span className="plink">
-              {p.live ? (
-                <>
-                  Live <ArrowUpRight size={13} strokeWidth={2.2} />
-                </>
+
+          <div className="pacts">
+            {soundCard && (
+              <button
+                type="button"
+                className={`psound${sound ? " on" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSound();
+                }}
+                aria-pressed={sound}
+                aria-label={
+                  sound ? `Mute the ${p.title} preview` : `Play the ${p.title} preview with sound`
+                }
+              >
+                {sound ? <VolumeX size={13} strokeWidth={2} /> : <Volume2 size={13} strokeWidth={2} />}
+                {sound ? "Mute" : "Sound"}
+              </button>
+            )}
+
+            {href &&
+              (soundCard ? (
+                <a
+                  className="plink"
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {linkLabel}
+                </a>
               ) : (
-                <>
-                  <Github size={13} strokeWidth={2} /> Source
-                </>
-              )}
-            </span>
-          )}
+                <span className="plink">{linkLabel}</span>
+              ))}
+          </div>
         </div>
       </div>
     </>
@@ -213,6 +291,25 @@ function ProjectCard({ p, index, wide }: { p: Project; index: number; wide: bool
           delay: index * 0.05,
         },
   };
+
+  // Anywhere on a sound card toggles its audio. That is mouse convenience on
+  // top of the pill, which is the real control — so no role or tabindex here,
+  // and keyboard users reach the same thing through the button.
+  if (soundCard) {
+    return (
+      <motion.div
+        ref={ref}
+        className={`${cls} sounded`}
+        style={style}
+        onPointerMove={onMove}
+        onPointerLeave={onLeave}
+        onClick={toggleSound}
+        {...reveal}
+      >
+        {body}
+      </motion.div>
+    );
+  }
 
   if (href) {
     return (

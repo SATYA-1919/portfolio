@@ -630,6 +630,32 @@ button { font: inherit; color: inherit; background: none; border: none; cursor: 
 .plink svg { transition: transform 0.25s ease; }
 .pcard:hover .plink svg { transform: translate(2px, -2px); }
 
+/* Sound toggle — a quieter sibling of .plink, so the outlined pill reads as
+   secondary to the solid one that actually leaves the page. */
+.pacts { display: flex; align-items: center; gap: 8px; }
+.psound {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(10, 10, 15, 0.5);
+  color: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+.psound:hover { border-color: rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.1); }
+.psound.on { border-color: var(--brand); color: #fff; background: rgba(255, 77, 46, 0.18); }
+/* The whole card is a click target for sound, but only the pills are the
+   things you actually press. */
+.pcard.sounded .plink, .pcard.sounded .psound { cursor: pointer; }
+
 /* ===================================================================
    Extracurricular (grayscale → colour on hover)
    =================================================================== */
